@@ -1,0 +1,1843 @@
+{
+  "id": "a0c4ffa4-b98e-4664-af28-c35fd52c4685",
+  "prevId": "94580e10-b4e6-473a-8058-6d7f88184dba",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.account": {
+      "name": "account",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider_id": {
+          "name": "provider_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "access_token": {
+          "name": "access_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "refresh_token": {
+          "name": "refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "id_token": {
+          "name": "id_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "access_token_expires_at": {
+          "name": "access_token_expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "refresh_token_expires_at": {
+          "name": "refresh_token_expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scope": {
+          "name": "scope",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "password": {
+          "name": "password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "account_userId_idx": {
+          "name": "account_userId_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "account_user_id_user_id_fk": {
+          "name": "account_user_id_user_id_fk",
+          "tableFrom": "account",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.session": {
+      "name": "session",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token": {
+          "name": "token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ip_address": {
+          "name": "ip_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_agent": {
+          "name": "user_agent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "session_userId_idx": {
+          "name": "session_userId_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "session_user_id_user_id_fk": {
+          "name": "session_user_id_user_id_fk",
+          "tableFrom": "session",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "session_token_unique": {
+          "name": "session_token_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "token"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user": {
+      "name": "user",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email_verified": {
+          "name": "email_verified",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_email_unique": {
+          "name": "user_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.verification": {
+      "name": "verification",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "identifier": {
+          "name": "identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "verification_identifier_idx": {
+          "name": "verification_identifier_idx",
+          "columns": [
+            {
+              "expression": "identifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.audit_logs": {
+      "name": "audit_logs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "period_id": {
+          "name": "period_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_type": {
+          "name": "entity_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "audit_logs_actor_idx": {
+          "name": "audit_logs_actor_idx",
+          "columns": [
+            {
+              "expression": "actor_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "audit_logs_period_date_idx": {
+          "name": "audit_logs_period_date_idx",
+          "columns": [
+            {
+              "expression": "period_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "audit_logs_entity_idx": {
+          "name": "audit_logs_entity_idx",
+          "columns": [
+            {
+              "expression": "entity_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "entity_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "audit_logs_actor_id_committee_admins_user_id_fk": {
+          "name": "audit_logs_actor_id_committee_admins_user_id_fk",
+          "tableFrom": "audit_logs",
+          "tableTo": "committee_admins",
+          "columnsFrom": [
+            "actor_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "audit_logs_period_id_qurban_periods_id_fk": {
+          "name": "audit_logs_period_id_qurban_periods_id_fk",
+          "tableFrom": "audit_logs",
+          "tableTo": "qurban_periods",
+          "columnsFrom": [
+            "period_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "audit_logs_identifiers_not_blank": {
+          "name": "audit_logs_identifiers_not_blank",
+          "value": "btrim(\"audit_logs\".\"action\") <> '' AND btrim(\"audit_logs\".\"entity_type\") <> ''\n        AND btrim(\"audit_logs\".\"entity_id\") <> ''"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.cash_transactions": {
+      "name": "cash_transactions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "registration_id": {
+          "name": "registration_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entry_type": {
+          "name": "entry_type",
+          "type": "cash_entry_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric(14, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payment_method": {
+          "name": "payment_method",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'cash'"
+        },
+        "receipt_number": {
+          "name": "receipt_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transacted_at": {
+          "name": "transacted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "recorded_by": {
+          "name": "recorded_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "voided_at": {
+          "name": "voided_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "voided_by": {
+          "name": "voided_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "void_reason": {
+          "name": "void_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "cash_transactions_registration_date_idx": {
+          "name": "cash_transactions_registration_date_idx",
+          "columns": [
+            {
+              "expression": "registration_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "transacted_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "cash_transactions_recorded_by_idx": {
+          "name": "cash_transactions_recorded_by_idx",
+          "columns": [
+            {
+              "expression": "recorded_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "cash_transactions_voided_by_idx": {
+          "name": "cash_transactions_voided_by_idx",
+          "columns": [
+            {
+              "expression": "voided_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "cash_transactions_registration_id_qurban_registrations_id_fk": {
+          "name": "cash_transactions_registration_id_qurban_registrations_id_fk",
+          "tableFrom": "cash_transactions",
+          "tableTo": "qurban_registrations",
+          "columnsFrom": [
+            "registration_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "cash_transactions_recorded_by_committee_admins_user_id_fk": {
+          "name": "cash_transactions_recorded_by_committee_admins_user_id_fk",
+          "tableFrom": "cash_transactions",
+          "tableTo": "committee_admins",
+          "columnsFrom": [
+            "recorded_by"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "cash_transactions_voided_by_committee_admins_user_id_fk": {
+          "name": "cash_transactions_voided_by_committee_admins_user_id_fk",
+          "tableFrom": "cash_transactions",
+          "tableTo": "committee_admins",
+          "columnsFrom": [
+            "voided_by"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "cash_transactions_receipt_number_unique": {
+          "name": "cash_transactions_receipt_number_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "receipt_number"
+          ]
+        },
+        "cash_transactions_idempotency_key_unique": {
+          "name": "cash_transactions_idempotency_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "idempotency_key"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "cash_transactions_amount_positive": {
+          "name": "cash_transactions_amount_positive",
+          "value": "\"cash_transactions\".\"amount\" > 0"
+        },
+        "cash_transactions_cash_only": {
+          "name": "cash_transactions_cash_only",
+          "value": "\"cash_transactions\".\"payment_method\" = 'cash'"
+        },
+        "cash_transactions_receipt_not_blank": {
+          "name": "cash_transactions_receipt_not_blank",
+          "value": "btrim(\"cash_transactions\".\"receipt_number\") <> ''"
+        },
+        "cash_transactions_void_complete": {
+          "name": "cash_transactions_void_complete",
+          "value": "(\"cash_transactions\".\"voided_at\" IS NULL AND \"cash_transactions\".\"voided_by\" IS NULL AND \"cash_transactions\".\"void_reason\" IS NULL)\n        OR (\"cash_transactions\".\"voided_at\" IS NOT NULL AND \"cash_transactions\".\"voided_by\" IS NOT NULL\n          AND \"cash_transactions\".\"void_reason\" IS NOT NULL AND btrim(\"cash_transactions\".\"void_reason\") <> '')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.committee_admins": {
+      "name": "committee_admins",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "committee_admins_created_by_idx": {
+          "name": "committee_admins_created_by_idx",
+          "columns": [
+            {
+              "expression": "created_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "committee_admins_user_id_user_id_fk": {
+          "name": "committee_admins_user_id_user_id_fk",
+          "tableFrom": "committee_admins",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "committee_admins_created_by_user_id_fk": {
+          "name": "committee_admins_created_by_user_id_fk",
+          "tableFrom": "committee_admins",
+          "tableTo": "user",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.participants": {
+      "name": "participants",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "full_name": {
+          "name": "full_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "archived_at": {
+          "name": "archived_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "participants_phone_idx": {
+          "name": "participants_phone_idx",
+          "columns": [
+            {
+              "expression": "phone",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "participants_created_by_idx": {
+          "name": "participants_created_by_idx",
+          "columns": [
+            {
+              "expression": "created_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "participants_created_by_committee_admins_user_id_fk": {
+          "name": "participants_created_by_committee_admins_user_id_fk",
+          "tableFrom": "participants",
+          "tableTo": "committee_admins",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "participants_name_not_blank": {
+          "name": "participants_name_not_blank",
+          "value": "btrim(\"participants\".\"full_name\") <> ''"
+        },
+        "participants_phone_format": {
+          "name": "participants_phone_format",
+          "value": "\"participants\".\"phone\" ~ '^\\+?[1-9][0-9]{7,14}$'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.qurban_groups": {
+      "name": "qurban_groups",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "period_id": {
+          "name": "period_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "breed": {
+          "name": "breed",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "expected_members": {
+          "name": "expected_members",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 7
+        },
+        "estimated_total": {
+          "name": "estimated_total",
+          "type": "numeric(14, 0)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "final_total": {
+          "name": "final_total",
+          "type": "numeric(14, 0)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "price_locked_at": {
+          "name": "price_locked_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "qurban_group_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'forming'"
+        },
+        "purchase_cost": {
+          "name": "purchase_cost",
+          "type": "numeric(14, 0)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "purchased_at": {
+          "name": "purchased_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "slaughtered_at": {
+          "name": "slaughtered_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "qurban_groups_period_status_idx": {
+          "name": "qurban_groups_period_status_idx",
+          "columns": [
+            {
+              "expression": "period_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "qurban_groups_created_by_idx": {
+          "name": "qurban_groups_created_by_idx",
+          "columns": [
+            {
+              "expression": "created_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "qurban_groups_period_id_qurban_periods_id_fk": {
+          "name": "qurban_groups_period_id_qurban_periods_id_fk",
+          "tableFrom": "qurban_groups",
+          "tableTo": "qurban_periods",
+          "columnsFrom": [
+            "period_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "qurban_groups_created_by_committee_admins_user_id_fk": {
+          "name": "qurban_groups_created_by_committee_admins_user_id_fk",
+          "tableFrom": "qurban_groups",
+          "tableTo": "committee_admins",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "qurban_groups_period_code_unique": {
+          "name": "qurban_groups_period_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "period_id",
+            "code"
+          ]
+        },
+        "qurban_groups_id_period_unique": {
+          "name": "qurban_groups_id_period_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id",
+            "period_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "qurban_groups_code_not_blank": {
+          "name": "qurban_groups_code_not_blank",
+          "value": "btrim(\"qurban_groups\".\"code\") <> ''"
+        },
+        "qurban_groups_member_limit": {
+          "name": "qurban_groups_member_limit",
+          "value": "\"qurban_groups\".\"expected_members\" BETWEEN 1 AND 7"
+        },
+        "qurban_groups_costs_positive": {
+          "name": "qurban_groups_costs_positive",
+          "value": "\"qurban_groups\".\"estimated_total\" > 0\n        AND (\"qurban_groups\".\"final_total\" IS NULL OR \"qurban_groups\".\"final_total\" > 0)\n        AND (\"qurban_groups\".\"purchase_cost\" IS NULL OR \"qurban_groups\".\"purchase_cost\" > 0)"
+        },
+        "qurban_groups_price_lock_complete": {
+          "name": "qurban_groups_price_lock_complete",
+          "value": "(\"qurban_groups\".\"final_total\" IS NULL) = (\"qurban_groups\".\"price_locked_at\" IS NULL)"
+        },
+        "qurban_groups_ready_price_locked": {
+          "name": "qurban_groups_ready_price_locked",
+          "value": "\"qurban_groups\".\"status\" NOT IN ('ready', 'purchased', 'slaughtered')\n        OR \"qurban_groups\".\"final_total\" IS NOT NULL"
+        },
+        "qurban_groups_purchase_complete": {
+          "name": "qurban_groups_purchase_complete",
+          "value": "(\"qurban_groups\".\"purchase_cost\" IS NULL) = (\"qurban_groups\".\"purchased_at\" IS NULL)"
+        },
+        "qurban_groups_purchased_has_receipt": {
+          "name": "qurban_groups_purchased_has_receipt",
+          "value": "\"qurban_groups\".\"status\" NOT IN ('purchased', 'slaughtered')\n        OR \"qurban_groups\".\"purchased_at\" IS NOT NULL"
+        },
+        "qurban_groups_slaughter_status_matches": {
+          "name": "qurban_groups_slaughter_status_matches",
+          "value": "(\"qurban_groups\".\"status\" = 'slaughtered') = (\"qurban_groups\".\"slaughtered_at\" IS NOT NULL)"
+        },
+        "qurban_groups_slaughter_after_purchase": {
+          "name": "qurban_groups_slaughter_after_purchase",
+          "value": "\"qurban_groups\".\"slaughtered_at\" IS NULL OR \"qurban_groups\".\"slaughtered_at\" >= \"qurban_groups\".\"purchased_at\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.qurban_periods": {
+      "name": "qurban_periods",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hijri_year": {
+          "name": "hijri_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "registration_starts_on": {
+          "name": "registration_starts_on",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "registration_ends_on": {
+          "name": "registration_ends_on",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payment_due_on": {
+          "name": "payment_due_on",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "qurban_on": {
+          "name": "qurban_on",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "qurban_period_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'draft'"
+        },
+        "is_featured": {
+          "name": "is_featured",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "qurban_periods_one_featured_idx": {
+          "name": "qurban_periods_one_featured_idx",
+          "columns": [
+            {
+              "expression": "is_featured",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"qurban_periods\".\"is_featured\" = true",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "qurban_periods_status_idx": {
+          "name": "qurban_periods_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "qurban_periods_created_by_idx": {
+          "name": "qurban_periods_created_by_idx",
+          "columns": [
+            {
+              "expression": "created_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "qurban_periods_created_by_committee_admins_user_id_fk": {
+          "name": "qurban_periods_created_by_committee_admins_user_id_fk",
+          "tableFrom": "qurban_periods",
+          "tableTo": "committee_admins",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "qurban_periods_hijri_year_unique": {
+          "name": "qurban_periods_hijri_year_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "hijri_year"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "qurban_periods_name_not_blank": {
+          "name": "qurban_periods_name_not_blank",
+          "value": "btrim(\"qurban_periods\".\"name\") <> ''"
+        },
+        "qurban_periods_hijri_year_positive": {
+          "name": "qurban_periods_hijri_year_positive",
+          "value": "\"qurban_periods\".\"hijri_year\" > 0"
+        },
+        "qurban_periods_dates_ordered": {
+          "name": "qurban_periods_dates_ordered",
+          "value": "\"qurban_periods\".\"registration_starts_on\" <= \"qurban_periods\".\"registration_ends_on\"\n        AND \"qurban_periods\".\"registration_ends_on\" <= \"qurban_periods\".\"payment_due_on\"\n        AND \"qurban_periods\".\"payment_due_on\" <= \"qurban_periods\".\"qurban_on\""
+        },
+        "qurban_periods_featured_is_published": {
+          "name": "qurban_periods_featured_is_published",
+          "value": "NOT \"qurban_periods\".\"is_featured\" OR \"qurban_periods\".\"status\" <> 'draft'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.qurban_registrations": {
+      "name": "qurban_registrations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "period_id": {
+          "name": "period_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "participant_id": {
+          "name": "participant_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "registration_number": {
+          "name": "registration_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "qurban_name": {
+          "name": "qurban_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "group_id": {
+          "name": "group_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "slot_number": {
+          "name": "slot_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "qurban_registration_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "registered_at": {
+          "name": "registered_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "cancelled_at": {
+          "name": "cancelled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancelled_by": {
+          "name": "cancelled_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancellation_reason": {
+          "name": "cancellation_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "qurban_registrations_active_slot_unique": {
+          "name": "qurban_registrations_active_slot_unique",
+          "columns": [
+            {
+              "expression": "group_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "slot_number",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"qurban_registrations\".\"status\" = 'active' AND \"qurban_registrations\".\"group_id\" IS NOT NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "qurban_registrations_period_status_idx": {
+          "name": "qurban_registrations_period_status_idx",
+          "columns": [
+            {
+              "expression": "period_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "qurban_registrations_group_period_idx": {
+          "name": "qurban_registrations_group_period_idx",
+          "columns": [
+            {
+              "expression": "group_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "period_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "qurban_registrations_created_by_idx": {
+          "name": "qurban_registrations_created_by_idx",
+          "columns": [
+            {
+              "expression": "created_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "qurban_registrations_cancelled_by_idx": {
+          "name": "qurban_registrations_cancelled_by_idx",
+          "columns": [
+            {
+              "expression": "cancelled_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "qurban_registrations_period_id_qurban_periods_id_fk": {
+          "name": "qurban_registrations_period_id_qurban_periods_id_fk",
+          "tableFrom": "qurban_registrations",
+          "tableTo": "qurban_periods",
+          "columnsFrom": [
+            "period_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "qurban_registrations_participant_id_participants_id_fk": {
+          "name": "qurban_registrations_participant_id_participants_id_fk",
+          "tableFrom": "qurban_registrations",
+          "tableTo": "participants",
+          "columnsFrom": [
+            "participant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "qurban_registrations_cancelled_by_committee_admins_user_id_fk": {
+          "name": "qurban_registrations_cancelled_by_committee_admins_user_id_fk",
+          "tableFrom": "qurban_registrations",
+          "tableTo": "committee_admins",
+          "columnsFrom": [
+            "cancelled_by"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "qurban_registrations_created_by_committee_admins_user_id_fk": {
+          "name": "qurban_registrations_created_by_committee_admins_user_id_fk",
+          "tableFrom": "qurban_registrations",
+          "tableTo": "committee_admins",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "qurban_registrations_group_period_fk": {
+          "name": "qurban_registrations_group_period_fk",
+          "tableFrom": "qurban_registrations",
+          "tableTo": "qurban_groups",
+          "columnsFrom": [
+            "group_id",
+            "period_id"
+          ],
+          "columnsTo": [
+            "id",
+            "period_id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "qurban_registrations_person_period_unique": {
+          "name": "qurban_registrations_person_period_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "participant_id",
+            "period_id"
+          ]
+        },
+        "qurban_registrations_number_period_unique": {
+          "name": "qurban_registrations_number_period_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "period_id",
+            "registration_number"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "qurban_registrations_names_not_blank": {
+          "name": "qurban_registrations_names_not_blank",
+          "value": "btrim(\"qurban_registrations\".\"registration_number\") <> '' AND btrim(\"qurban_registrations\".\"qurban_name\") <> ''"
+        },
+        "qurban_registrations_group_slot_pair": {
+          "name": "qurban_registrations_group_slot_pair",
+          "value": "(\"qurban_registrations\".\"group_id\" IS NULL) = (\"qurban_registrations\".\"slot_number\" IS NULL)"
+        },
+        "qurban_registrations_slot_range": {
+          "name": "qurban_registrations_slot_range",
+          "value": "\"qurban_registrations\".\"slot_number\" IS NULL OR \"qurban_registrations\".\"slot_number\" BETWEEN 1 AND 7"
+        },
+        "qurban_registrations_cancellation_complete": {
+          "name": "qurban_registrations_cancellation_complete",
+          "value": "(\"qurban_registrations\".\"status\" = 'active' AND \"qurban_registrations\".\"cancelled_at\" IS NULL\n          AND \"qurban_registrations\".\"cancelled_by\" IS NULL AND \"qurban_registrations\".\"cancellation_reason\" IS NULL)\n        OR (\"qurban_registrations\".\"status\" = 'cancelled' AND \"qurban_registrations\".\"cancelled_at\" IS NOT NULL\n          AND \"qurban_registrations\".\"cancelled_by\" IS NOT NULL AND \"qurban_registrations\".\"cancellation_reason\" IS NOT NULL\n          AND btrim(\"qurban_registrations\".\"cancellation_reason\") <> '')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.site_settings": {
+      "name": "site_settings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "default": 1
+        },
+        "committee_name": {
+          "name": "committee_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "contact_name": {
+          "name": "contact_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "whatsapp_number": {
+          "name": "whatsapp_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "public_description": {
+          "name": "public_description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "site_settings_updated_by_idx": {
+          "name": "site_settings_updated_by_idx",
+          "columns": [
+            {
+              "expression": "updated_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "site_settings_updated_by_committee_admins_user_id_fk": {
+          "name": "site_settings_updated_by_committee_admins_user_id_fk",
+          "tableFrom": "site_settings",
+          "tableTo": "committee_admins",
+          "columnsFrom": [
+            "updated_by"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "site_settings_singleton": {
+          "name": "site_settings_singleton",
+          "value": "\"site_settings\".\"id\" = 1"
+        },
+        "site_settings_whatsapp_format": {
+          "name": "site_settings_whatsapp_format",
+          "value": "\"site_settings\".\"whatsapp_number\" = '' OR \"site_settings\".\"whatsapp_number\" ~ '^[1-9][0-9]{7,14}$'"
+        },
+        "site_settings_names_not_blank": {
+          "name": "site_settings_names_not_blank",
+          "value": "btrim(\"site_settings\".\"committee_name\") <> '' AND btrim(\"site_settings\".\"contact_name\") <> ''"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.cash_entry_type": {
+      "name": "cash_entry_type",
+      "schema": "public",
+      "values": [
+        "deposit",
+        "refund"
+      ]
+    },
+    "public.qurban_group_status": {
+      "name": "qurban_group_status",
+      "schema": "public",
+      "values": [
+        "forming",
+        "collecting",
+        "ready",
+        "purchased",
+        "slaughtered",
+        "cancelled"
+      ]
+    },
+    "public.qurban_period_status": {
+      "name": "qurban_period_status",
+      "schema": "public",
+      "values": [
+        "draft",
+        "open",
+        "closed",
+        "completed",
+        "archived"
+      ]
+    },
+    "public.qurban_registration_status": {
+      "name": "qurban_registration_status",
+      "schema": "public",
+      "values": [
+        "active",
+        "cancelled"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

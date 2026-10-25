@@ -1,26 +1,125 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "./qurban.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --background: var(--q-bg);
+  --foreground: var(--q-ink);
+  --card: var(--q-surface);
+  --card-foreground: var(--q-ink);
+  --popover: var(--q-surface);
+  --popover-foreground: var(--q-ink);
+  --primary: var(--q-green);
+  --primary-foreground: var(--q-on-green);
+  --secondary: var(--q-soft);
+  --secondary-foreground: var(--q-ink);
+  --muted: var(--q-bg);
+  --muted-foreground: var(--q-muted);
+  --accent: var(--q-mint);
+  --accent-foreground: var(--q-ink);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: var(--q-line);
+  --input: var(--q-input-line);
+  --ring: var(--q-green);
+  --chart-1: var(--q-teal);
+  --chart-2: var(--q-sea);
+  --chart-3: var(--q-pale-mint);
+  --chart-4: var(--q-lemon);
+  --chart-5: #1f5f5a;
+  --radius: 0.75rem;
+  --sidebar: var(--q-sidebar);
+  --sidebar-foreground: var(--q-sidebar-text);
+  --sidebar-primary: var(--q-pale-mint);
+  --sidebar-primary-foreground: #183e3b;
+  --sidebar-accent: var(--q-pale-mint);
+  --sidebar-accent-foreground: #183e3b;
+  --sidebar-border: var(--q-sea);
+  --sidebar-ring: var(--q-pale-mint);
+}
+
+:root [data-sonner-toaster][data-sonner-theme] {
+  --success-bg: var(--q-soft);
+  --success-border: var(--q-mint);
+  --success-text: var(--q-green);
+  --info-bg: var(--q-soft);
+  --info-border: var(--q-mint);
+  --info-text: var(--q-green);
+  --warning-bg: var(--q-amber-bg);
+  --warning-border: color-mix(in srgb, var(--q-amber) 25%, var(--q-amber-bg));
+  --warning-text: var(--q-amber);
+}
+
+[data-slot="button"][data-variant="default"]:hover {
+  background: var(--q-green-hover);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 4px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }

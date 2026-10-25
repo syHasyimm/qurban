@@ -1,0 +1,11 @@
+node_modules
+.next
+coverage
+pnpm-lock.yaml
+drizzle/meta
+playwright-report
+test-results
+artifacts
+logs
+instalation.md
+next-env.d.ts

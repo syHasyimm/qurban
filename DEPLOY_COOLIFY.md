@@ -68,7 +68,7 @@ Utamakan firewall provider sesuai [panduan firewall Coolify](https://coolify.io/
 | Ports Exposes               | `3000`                                                                         |
 | Domain                      | HTTPS, hostname `qurban.example.org`, target port internal `3000`              |
 | Host port mapping           | Kosong; akses publik melalui proxy                                             |
-| Start command               | Gunakan CMD image: `node server.js`                                            |
+| Start command               | Kosong; ENTRYPOINT image menjalankan migrasi, lalu `node server.js`            |
 | Volume aplikasi             | Belum diperlukan; aset ikut image dan data operasional tersimpan di PostgreSQL |
 | Auto deploy                 | Aktifkan setelah alur migrasi dan verifikasi rilis pertama selesai             |
 
@@ -91,36 +91,23 @@ node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'
 
 Origin autentikasi dan aplikasi harus sama. Perubahan domain memerlukan penyesuaian URL dan build ulang karena `NEXT_PUBLIC_APP_URL` dimasukkan ke bundle saat build. Dockerfile memakai nilai sementara untuk validasi modul server selama build; kredensial produksi diberikan saat runtime. Build memerlukan akses internet untuk dependency dan font Google.
 
-**5. Jalankan migrasi dan bootstrap melalui container maintenance**
+**5. Migrasi otomatis dan buat admin melalui terminal aplikasi**
 
-Image `runner` hanya berisi output standalone dan aset. Image tersebut tidak menyediakan pnpm, Drizzle Kit, folder migrasi, maupun script bootstrap. Gunakan stage **builder** yang sudah ada untuk membuat image maintenance dari **commit yang sama** dengan rilis aplikasi.
+Saat container aplikasi mulai, ENTRYPOINT menjalankan `node /app/scripts/migrate.mjs` memakai `DATABASE_URL` runtime yang sudah diatur di Coolify. Setelah migrasi berhasil, proses diganti dengan `node server.js`. Jika migrasi gagal, container keluar dengan status gagal dan penyebabnya terlihat di Runtime Logs.
 
-Di checkout commit rilis pada VPS, isi nama network destination yang benar. Siapkan `/root/qurban-maintenance.env` dengan izin `600`, berisi hanya `DATABASE_URL` internal produksi. Simpan file ini di luar checkout dan gunakan editor agar kredensial tidak masuk command history.
+Migrasi memakai folder `drizzle/` dari image rilis serta riwayat `drizzle.__drizzle_migrations` yang sama dengan Drizzle Kit. Deploy dan restart berikutnya hanya menerapkan migrasi yang belum tercatat; tabel dan data yang sudah ada tetap dipertahankan. Lock PostgreSQL membuat dua container yang mulai bersamaan menjalankan migrasi secara bergiliran.
 
-```sh
-export RELEASE_SHA="$(git rev-parse HEAD)"
-export COOLIFY_NETWORK='ganti-dengan-nama-network-destination'
+Gunakan stage akhir `runner`, biarkan **Start command** kosong, dan kosongkan perintah migrasi lama di **Pre-deployment/Post-deployment**. Tidak perlu membuat image maintenance atau file env tambahan di VPS. Kredensial produksi tetap dikelola melalui Environment Variables Coolify.
 
-docker build --target builder \
-  --build-arg NEXT_PUBLIC_APP_URL=https://qurban.example.org \
-  -t "qurban-maintenance:$RELEASE_SHA" .
-
-docker run --rm --network "$COOLIFY_NETWORK" \
-  --env-file /root/qurban-maintenance.env \
-  "qurban-maintenance:$RELEASE_SHA" pnpm db:migrate
-```
-
-Lanjutkan hanya setelah migrasi berhasil. Untuk database baru, buat admin pertama melalui terminal interaktif:
+Setelah aplikasi berstatus Running/Healthy, buka aplikasi di Coolify, pilih **Terminal**, sambungkan ke container aplikasi, lalu jalankan:
 
 ```sh
-docker run --rm -it --network "$COOLIFY_NETWORK" \
-  --env-file /root/qurban-maintenance.env \
-  "qurban-maintenance:$RELEASE_SHA" pnpm admin:bootstrap
+node /app/scripts/bootstrap-admin.mjs
 ```
 
-Script meminta nama dan email, lalu menampilkan password acak sekali. Simpan password tersebut di password manager. Bootstrap menolak database yang sudah memiliki panitia.
+Isi nama dan email admin. Script menampilkan password acak sekali; simpan di password manager lalu gunakan untuk login ke `/login`. Bootstrap hanya untuk database baru yang belum memiliki panitia. Pada redeploy, akun yang sudah dibuat tetap tersedia; panitia berikutnya ditambahkan melalui dashboard.
 
-Migrasi dijalankan satu kali per rilis melalui langkah operator atau pipeline yang memeriksa exit code. Pre-deployment Coolify berjalan pada container lama dan dilewati saat deploy pertama; post-deployment tidak menjadikan rilis gagal apabila perintahnya gagal. Keduanya juga memakai image runtime proyek yang tidak memuat alat maintenance. [Perilaku deployment commands](https://coolify.io/docs/applications/builds/dockerfile#deployment-commands).
+Image runtime memuat dependency produksi, folder migrasi, serta kedua script tersebut. CLI pnpm dan Drizzle Kit tidak diperlukan di terminal aplikasi.
 
 **6. Aktifkan health check, deploy, lalu verifikasi**
 
@@ -132,7 +119,7 @@ node -e "fetch('http://127.0.0.1:3000/api/public/qurban', {signal: AbortSignal.t
 
 Rekomendasi awal: interval 30 detik, timeout 5 detik, retries 3, start period 30 detik. Endpoint ini membaca data tanpa mengubahnya dan tersedia setelah migrasi. Image slim saat ini belum memasang `curl`/`wget`, yang diperlukan oleh mode HTTP bawaan Coolify. [Panduan health checks](https://coolify.io/docs/applications/configuration/health-checks).
 
-Urutan deploy pertama: database sehat → migrasi → bootstrap → deploy aplikasi → health check sehat → verifikasi domain.
+Urutan deploy pertama: database sehat → deploy aplikasi → migrasi otomatis → aplikasi dan health check sehat → bootstrap melalui Terminal aplikasi → login dan verifikasi domain.
 
 - Pastikan HTTPS dan sertifikat kedua domain valid.
 - Buka halaman publik dan `/login`; periksa gambar, CSS, dan JavaScript.
@@ -159,7 +146,7 @@ Backup instance Coolify menyimpan konfigurasi dan kredensial, sedangkan data Pos
 
 **8. Tetapkan prosedur rilis berikutnya dan rollback**
 
-Alur awal: perubahan kode → pemeriksaan otomatis → uji staging → backup produksi → migrasi kompatibel → deploy commit yang sama → verifikasi. Aktifkan deployment otomatis hanya ketika perubahan skema juga memiliki langkah migrasi yang terkontrol. Rilis tanpa migrasi dapat langsung memakai alur deployment biasa setelah pemeriksaan lolos.
+Alur awal: perubahan kode → pemeriksaan otomatis → uji staging → backup produksi → deploy commit rilis dengan migrasi otomatis → verifikasi. Tinjau migrasi sebelum rilis dan pertahankan kompatibilitas dengan versi aplikasi yang masih berjalan selama pergantian container.
 
 Simpan setidaknya tiga image rilis yang diketahui sehat dan periksa kebijakan cleanup server. Coolify dapat menjalankan kembali image lama yang masih disimpan; rollback memakai konfigurasi runtime saat ini dan tidak membatalkan migrasi atau transaksi database. [Panduan rollback](https://coolify.io/docs/applications/deployments/rollbacks).
 

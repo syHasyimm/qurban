@@ -26,6 +26,10 @@ RUN DATABASE_URL=postgresql://build:build@127.0.0.1:5432/qurban \
     BETTER_AUTH_URL="${NEXT_PUBLIC_APP_URL}" \
     pnpm build
 
+FROM dependencies AS production-dependencies
+
+RUN pnpm prune --prod
+
 FROM base AS runner
 
 ENV NODE_ENV=production \
@@ -33,11 +37,16 @@ ENV NODE_ENV=production \
     HOSTNAME=0.0.0.0
 
 COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 COPY --from=builder --chown=node:node /app/public ./public
+COPY --from=builder --chown=node:node /app/drizzle ./drizzle
+COPY --from=builder --chown=node:node /app/scripts/migrate.mjs /app/scripts/bootstrap-admin.mjs ./scripts/
+COPY --from=builder --chown=node:node /app/scripts/docker-entrypoint.sh ./scripts/docker-entrypoint.sh
 
 USER node
 
 EXPOSE 3000
 
+ENTRYPOINT ["/bin/sh", "/app/scripts/docker-entrypoint.sh"]
 CMD ["node", "server.js"]

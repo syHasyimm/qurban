@@ -104,7 +104,7 @@ Gunakan origin yang sama pada browser dan kedua variabel URL. Jika mengganti por
 
 Rencana produksi dengan VPS, Coolify, PostgreSQL internal, migrasi, dan backup tersedia di [DEPLOY_COOLIFY.md](DEPLOY_COOLIFY.md).
 
-`Dockerfile` memakai Node.js 24.19.0, pnpm 11.20.0, dan build beberapa tahap. Image akhir hanya memuat output Next.js `standalone` beserta aset, dan berjalan sebagai user `node`. `.dockerignore` mengecualikan `.env*`, dependency lokal, dan hasil build/pengujian.
+`Dockerfile` memakai Node.js 24.19.0, pnpm 11.20.0 saat build, dan build beberapa tahap. Image akhir memuat output Next.js `standalone`, dependency produksi, aset, migrasi, serta script migrasi/bootstrap, dan berjalan sebagai user `node`. `.dockerignore` mengecualikan `.env*`, dependency lokal, dan hasil build/pengujian.
 
 Build image dengan origin publik yang akan dipakai browser:
 
@@ -126,10 +126,19 @@ Jalankan database, lalu jalankan aplikasi pada jaringan Compose yang sama:
 
 ```sh
 docker compose up -d --wait postgres
-docker run --rm --name qurban-app --network qurban_default --env-file .env.docker -p 3000:3000 qurban:latest
+docker run --rm -d --name qurban-app --network qurban_default --env-file .env.docker -p 3000:3000 qurban:latest
+docker logs -f qurban-app
 ```
 
-Buka `http://localhost:3000`. Untuk database baru, jalankan `pnpm db:migrate` dan `pnpm admin:bootstrap` dari host mengikuti langkah Setup sebelum memakai aplikasi. Perintah host tetap memakai `.env` dengan hostname `localhost`. Image runtime menjalankan `node server.js`; migrasi dan bootstrap dilakukan terpisah dari startup aplikasi.
+Buka `http://localhost:3000`. Setiap container mulai, migrasi yang belum diterapkan dijalankan otomatis sebelum server Next.js. Data dan akun yang sudah ada tetap tersimpan. Jika migrasi gagal, aplikasi tidak mulai; periksa log container. Kredensial database dibaca dari environment container yang sama.
+
+Untuk database baru, buka terminal lain dan buat admin pertama:
+
+```sh
+docker exec -it qurban-app node /app/scripts/bootstrap-admin.mjs
+```
+
+Pada Coolify, cukup buka **Terminal** aplikasi dan jalankan `node /app/scripts/bootstrap-admin.mjs`. Isi nama/email lalu simpan password acak yang muncul sekali. Bootstrap menolak database yang sudah memiliki panitia. Tidak perlu container maintenance atau file env tambahan di `/root`. Biarkan Start command dan perintah migrasi Pre/Post-deployment Coolify kosong agar ENTRYPOINT image menangani startup.
 
 ## Script
 
@@ -147,12 +156,22 @@ Buka `http://localhost:3000`. Untuk database baru, jalankan `pnpm db:migrate` da
 | `pnpm test:e2e`        | E2E Chromium; otomatis menjalankan server bila perlu.                            |
 | `pnpm test:e2e:ui`     | Playwright dalam mode UI.                                                        |
 | `pnpm test:backend`    | Build produksi dan integrasi pada database uji terisolasi.                       |
+| `pnpm test:docker`     | Memeriksa startup, migrasi, dan bootstrap pada image Docker uji.                 |
 | `pnpm admin:bootstrap` | Membuat admin pertama melalui terminal internal.                                 |
 | `pnpm db:generate`     | Menghasilkan migrasi SQL dari perubahan skema.                                   |
 | `pnpm db:migrate`      | Menerapkan migrasi SQL yang belum dijalankan.                                    |
 | `pnpm db:push`         | Menyinkronkan skema langsung untuk eksperimen lokal.                             |
 | `pnpm db:studio`       | Membuka Drizzle Studio.                                                          |
 | `pnpm auth:generate`   | Menghasilkan ulang skema Better Auth dan menormalkan timestamp ke `timestamptz`. |
+
+Untuk memeriksa image dan alur deploy otomatis, jalankan Docker lalu:
+
+```sh
+docker build --build-arg NEXT_PUBLIC_APP_URL=http://localhost:3005 -t qurban:startup-migrations-test .
+pnpm test:docker
+```
+
+Pengujian memakai port lokal 3005, PostgreSQL dan network Docker sementara, serta data sintetis. Pengujian mencakup migrasi database kosong, bootstrap interaktif, login admin, restart tanpa mengubah riwayat/data, migrasi bersamaan, dan kegagalan SQL yang membatalkan perubahan serta menghentikan startup. Container, network, dan fixture pengujian dibersihkan setelah selesai; database dan container yang sudah berjalan tidak digunakan.
 
 ## Struktur
 

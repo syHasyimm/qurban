@@ -14,11 +14,12 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:backend": "node scripts/test-backend.mjs",
+    "test:docker": "node scripts/test-docker-startup.mjs",
     "admin:bootstrap": "node scripts/bootstrap-admin.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "node scripts/migrate.mjs",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "auth:generate": "auth generate --config ./src/lib/auth.ts --output ./src/db/schema/auth.ts --yes && node scripts/normalize-auth-schema.mjs && prettier --write src/db/schema/auth.ts"

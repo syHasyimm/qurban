@@ -1313,3 +1313,30 @@ test("tag kelompok: validasi batch, rollback, dan persaingan slot", async ({
     await sql`select id from audit_logs where entity_id in (${assignedIds[0]}, ${assignedIds[1]}) and action = 'Kelompok peserta diperbarui'`,
   ).toHaveLength(2);
 });
+
+test("login admin bootstrap mempertahankan sesi setelah reload", async ({
+  page,
+}) => {
+  await page.goto("/login");
+  await page.getByLabel("Email", { exact: true }).fill("BACKEND@EXAMPLE.TEST");
+  await page
+    .getByLabel("Kata sandi", { exact: true })
+    .fill(`Salah-${randomUUID()}`);
+  await page.getByRole("button", { name: "Masuk ke akun" }).click();
+  await expect(page.locator(".q-login-form [role=alert]")).toContainText(
+    "Email atau kata sandi tidak sesuai",
+  );
+  await page.getByLabel("Kata sandi", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Masuk ke akun" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  expect((await page.request.get("/api/account")).status()).toBe(200);
+  await page.reload();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  expect((await page.request.get("/api/account")).status()).toBe(200);
+  const rejected = await page.request.post("/api/auth/sign-in/email", {
+    headers: { origin: "https://origin-tidak-diizinkan.invalid" },
+    data: { email: "backend@example.test", password },
+  });
+  expect(rejected.status()).toBe(403);
+  expect((await rejected.json()).code).toBe("INVALID_ORIGIN");
+});

@@ -16,6 +16,7 @@
     "test:backend": "node scripts/test-backend.mjs",
     "test:docker": "node scripts/test-docker-startup.mjs",
     "admin:bootstrap": "node scripts/bootstrap-admin.mjs",
+    "admin:reset": "node scripts/reset-admin.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:generate": "drizzle-kit generate",

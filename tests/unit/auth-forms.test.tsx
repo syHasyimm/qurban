@@ -38,7 +38,7 @@ describe("form autentikasi", () => {
 
   it("menampilkan kegagalan login dan tetap berada di halaman login", async () => {
     mocks.signIn.mockResolvedValue({
-      error: { message: "Invalid credentials" },
+      error: { code: "INVALID_EMAIL_OR_PASSWORD", status: 401 },
     });
     const user = userEvent.setup();
     render(<LoginForm />);
@@ -46,10 +46,35 @@ describe("form autentikasi", () => {
     await user.type(screen.getByLabelText("Kata sandi"), "KataSandiUji42!");
     await user.click(screen.getByRole("button", { name: "Masuk ke akun" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Email atau kata sandi tidak sesuai.",
+      "Email atau kata sandi tidak sesuai, atau akses panitia tidak aktif.",
     );
     expect(mocks.replace).not.toHaveBeenCalled();
   });
+
+  it.each([
+    [
+      { code: "INVALID_ORIGIN", status: 403 },
+      "Alamat situs ini belum diizinkan",
+    ],
+    [{ status: 429 }, "Terlalu banyak percobaan login"],
+    [{ status: 500 }, "Layanan login sedang mengalami gangguan"],
+    [
+      { code: "FAILED_TO_CREATE_SESSION", status: 401 },
+      "Sesi login belum dapat dibuat",
+    ],
+  ])(
+    "membedakan kegagalan layanan dari kata sandi salah: %j",
+    async (error, message) => {
+      mocks.signIn.mockResolvedValue({ error });
+      const user = userEvent.setup();
+      render(<LoginForm />);
+      await user.type(screen.getByLabelText("Email"), "rafi@example.test");
+      await user.type(screen.getByLabelText("Kata sandi"), "KataSandiUji42!");
+      await user.click(screen.getByRole("button", { name: "Masuk ke akun" }));
+      expect(await screen.findByRole("alert")).toHaveTextContent(message);
+      expect(mocks.replace).not.toHaveBeenCalled();
+    },
+  );
 
   it("membuka dashboard setelah login berhasil", async () => {
     mocks.signIn.mockResolvedValue({

@@ -41,7 +41,7 @@ COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_m
 COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 COPY --from=builder --chown=node:node /app/public ./public
 COPY --from=builder --chown=node:node /app/drizzle ./drizzle
-COPY --from=builder --chown=node:node /app/scripts/migrate.mjs /app/scripts/bootstrap-admin.mjs ./scripts/
+COPY --from=builder --chown=node:node /app/scripts/migrate.mjs /app/scripts/bootstrap-admin.mjs /app/scripts/reset-admin.mjs ./scripts/
 COPY --from=builder --chown=node:node /app/scripts/docker-entrypoint.sh ./scripts/docker-entrypoint.sh
 
 USER node

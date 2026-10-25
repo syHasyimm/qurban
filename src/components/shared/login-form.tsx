@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { loginSchema, type LoginValues } from "@/lib/validations/auth";
+import { loginErrorMessage } from "@/lib/login-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -32,7 +33,7 @@ export function LoginForm({ status }: { status?: string } = {}) {
     try {
       const result = await authClient.signIn.email(values);
       if (result.error) {
-        setError("Email atau kata sandi tidak sesuai. Silakan coba lagi.");
+        setError(loginErrorMessage(result.error));
         return;
       }
       router.replace("/dashboard");

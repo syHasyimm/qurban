@@ -107,7 +107,15 @@ node /app/scripts/bootstrap-admin.mjs
 
 Isi nama dan email admin. Script menampilkan password acak sekali; simpan di password manager lalu gunakan untuk login ke `/login`. Bootstrap hanya untuk database baru yang belum memiliki panitia. Pada redeploy, akun yang sudah dibuat tetap tersedia; panitia berikutnya ditambahkan melalui dashboard.
 
-Image runtime memuat dependency produksi, folder migrasi, serta kedua script tersebut. CLI pnpm dan Drizzle Kit tidak diperlukan di terminal aplikasi.
+Jika lupa password admin yang sudah dibuat, jalankan dari **Terminal** container aplikasi:
+
+```sh
+node /app/scripts/reset-admin.mjs
+```
+
+Masukkan email admin yang terdaftar. Script mengganti password dengan password acak yang ditampilkan sekali dan mengakhiri seluruh sesi akun tersebut. Simpan password baru lalu login kembali. Data peserta, kelompok, dan pembayaran tetap tersimpan. Reset hanya berlaku untuk akun panitia aktif yang sudah ada. Script ini tersedia setelah perubahan terbaru di repository dideploy.
+
+Image runtime memuat dependency produksi, folder migrasi, serta script migrasi, bootstrap, dan reset password admin. CLI pnpm dan Drizzle Kit tidak diperlukan di terminal aplikasi.
 
 **6. Aktifkan health check, deploy, lalu verifikasi**
 

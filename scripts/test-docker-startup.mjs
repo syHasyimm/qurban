@@ -93,35 +93,46 @@ async function waitForApp() {
     }
   }, "Application did not start after migrations.");
 }
-function bootstrapThroughTerminal() {
-  return new Promise((resolvePassword, reject) => {
+function adminThroughTerminal(script, answers, passwordPattern) {
+  return new Promise((resolveResult, reject) => {
     const child = spawn(
       "docker",
-      ["exec", "-i", app, "node", "/app/scripts/bootstrap-admin.mjs"],
+      ["exec", "-i", app, "node", `/app/scripts/${script}.mjs`],
       { windowsHide: true, timeout: 20000 },
     );
     let output = "";
-    let sentName = false;
-    let sentEmail = false;
+    let stderr = "";
+    let answerIndex = 0;
     child.stdout.on("data", (chunk) => {
       output += chunk;
-      if (!sentName && output.includes("Nama admin:")) {
-        sentName = true;
-        child.stdin.write("Panitia Docker\n");
-      }
-      if (!sentEmail && output.includes("Email admin:")) {
-        sentEmail = true;
-        child.stdin.end("docker@example.test\n");
+      while (
+        answerIndex < answers.length &&
+        output.includes(answers[answerIndex][0])
+      ) {
+        child.stdin.write(`${answers[answerIndex][1]}\n`);
+        answerIndex++;
+        if (answerIndex === answers.length) child.stdin.end();
       }
     });
-    child.stderr.resume();
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
     child.on("error", reject);
-    child.on("exit", (code) => {
-      const match = output.match(/Password acak \(simpan sekarang\): (\S+)/);
-      if (code === 0 && match) resolvePassword(match[1]);
-      else reject(new Error("Interactive admin bootstrap failed."));
+    child.on("close", (code) => {
+      resolveResult({
+        code,
+        password: output.match(passwordPattern)?.[1],
+        stderr,
+      });
     });
   });
+}
+function resetThroughTerminal(email = "docker@example.test") {
+  return adminThroughTerminal(
+    "reset-admin",
+    [["Email admin:", email]],
+    /Password baru \(simpan sekarang\): (\S+)/,
+  );
 }
 
 try {
@@ -192,7 +203,17 @@ try {
     "PASS: empty database migrates before the non-root application starts.",
   );
 
-  const password = await bootstrapThroughTerminal();
+  const bootstrapped = await adminThroughTerminal(
+    "bootstrap-admin",
+    [
+      ["Nama admin:", "Panitia Docker"],
+      ["Email admin:", "docker@example.test"],
+    ],
+    /Password acak \(simpan sekarang\): (\S+)/,
+  );
+  assert.equal(bootstrapped.code, 0, "Interactive admin bootstrap failed.");
+  assert.ok(bootstrapped.password);
+  const password = bootstrapped.password;
   const signIn = await fetch(`${origin}/api/auth/sign-in/email`, {
     method: "POST",
     headers: { "Content-Type": "application/json", origin },
@@ -214,6 +235,95 @@ try {
   );
   assert.equal(repeated.code, 1);
   assert.match(repeated.stderr, /Bootstrap ditolak/);
+
+  const cookie = signIn.headers
+    .getSetCookie()
+    .map((value) => value.split(";")[0])
+    .join("; ");
+  assert.ok(cookie);
+  assert.equal(
+    (await fetch(`${origin}/api/account`, { headers: { cookie } })).status,
+    200,
+  );
+  const originalCredential = await query(
+    "select id || ':' || user_id || ':' || password from account where provider_id = 'credential'",
+  );
+  const originalAdmin = await query("select user_id from committee_admins");
+  const missing = await resetThroughTerminal("missing@example.test");
+  assert.equal(missing.code, 1);
+  assert.match(missing.stderr, /tidak ditemukan/);
+  assert.equal(missing.password, undefined);
+
+  await query("update committee_admins set is_active = false");
+  const inactive = await resetThroughTerminal();
+  assert.equal(inactive.code, 1);
+  assert.match(inactive.stderr, /tidak aktif/);
+  assert.equal(inactive.password, undefined);
+  await query("update committee_admins set is_active = true");
+
+  // A failed audit insert must roll back both the new hash and session deletion.
+  await query(`create function docker_reject_reset() returns trigger language plpgsql as $$
+    begin raise exception 'synthetic reset audit failure'; end; $$;
+    create trigger docker_reject_reset before insert on audit_logs
+    for each row when (new.action = 'Password admin direset') execute function docker_reject_reset()`);
+  const rejected = await resetThroughTerminal();
+  assert.equal(rejected.code, 1);
+  assert.match(rejected.stderr, /synthetic reset audit failure/);
+  assert.equal(rejected.password, undefined);
+  assert.equal(
+    await query(
+      "select id || ':' || user_id || ':' || password from account where provider_id = 'credential'",
+    ),
+    originalCredential,
+  );
+  assert.equal(
+    (await fetch(`${origin}/api/account`, { headers: { cookie } })).status,
+    200,
+  );
+  await query(
+    "drop trigger docker_reject_reset on audit_logs; drop function docker_reject_reset()",
+  );
+
+  const reset = await resetThroughTerminal("  DOCKER@EXAMPLE.TEST  ");
+  assert.equal(reset.code, 0, "Interactive admin password reset failed.");
+  assert.ok(reset.password);
+  assert.equal(
+    await query("select user_id from committee_admins"),
+    originalAdmin,
+  );
+  assert.equal(await query("select count(*) from session"), "0");
+  assert.equal(
+    (await fetch(`${origin}/api/account`, { headers: { cookie } })).status,
+    401,
+  );
+  assert.equal(
+    await query(
+      "select count(*) from audit_logs where action = 'Password admin direset'",
+    ),
+    "1",
+  );
+  for (const [candidate, expected] of [
+    [password, 401],
+    [reset.password, 200],
+  ]) {
+    const response = await fetch(`${origin}/api/auth/sign-in/email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", origin },
+      body: JSON.stringify({
+        email: "docker@example.test",
+        password: candidate,
+      }),
+    });
+    assert.equal(
+      response.status,
+      expected,
+      "Password reset authentication result was incorrect.",
+    );
+  }
+  console.log(
+    "PASS: terminal password reset revokes sessions, preserves the admin, rejects inactive/missing accounts, and rolls back on failure.",
+  );
+
   await docker(["restart", app]);
   await waitForApp();
   await docker([

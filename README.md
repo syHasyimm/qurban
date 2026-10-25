@@ -104,7 +104,7 @@ Gunakan origin yang sama pada browser dan kedua variabel URL. Jika mengganti por
 
 Rencana produksi dengan VPS, Coolify, PostgreSQL internal, migrasi, dan backup tersedia di [DEPLOY_COOLIFY.md](DEPLOY_COOLIFY.md).
 
-`Dockerfile` memakai Node.js 24.19.0, pnpm 11.20.0 saat build, dan build beberapa tahap. Image akhir memuat output Next.js `standalone`, dependency produksi, aset, migrasi, serta script migrasi/bootstrap, dan berjalan sebagai user `node`. `.dockerignore` mengecualikan `.env*`, dependency lokal, dan hasil build/pengujian.
+`Dockerfile` memakai Node.js 24.19.0, pnpm 11.20.0 saat build, dan build beberapa tahap. Image akhir memuat output Next.js `standalone`, dependency produksi, aset, migrasi, serta script migrasi/bootstrap/reset password admin, dan berjalan sebagai user `node`. `.dockerignore` mengecualikan `.env*`, dependency lokal, dan hasil build/pengujian.
 
 Build image dengan origin publik yang akan dipakai browser:
 
@@ -140,6 +140,14 @@ docker exec -it qurban-app node /app/scripts/bootstrap-admin.mjs
 
 Pada Coolify, cukup buka **Terminal** aplikasi dan jalankan `node /app/scripts/bootstrap-admin.mjs`. Isi nama/email lalu simpan password acak yang muncul sekali. Bootstrap menolak database yang sudah memiliki panitia. Tidak perlu container maintenance atau file env tambahan di `/root`. Biarkan Start command dan perintah migrasi Pre/Post-deployment Coolify kosong agar ENTRYPOINT image menangani startup.
 
+Untuk mereset password admin yang sudah terdaftar, setelah versi terbaru dideploy, jalankan di **Terminal** container aplikasi:
+
+```sh
+node /app/scripts/reset-admin.mjs
+```
+
+Masukkan email admin aktif. Script menampilkan password acak baru sekali, mengakhiri seluruh sesi akun tersebut, dan mencatat reset pada audit log. Data operasional tetap tersimpan. Di checkout lokal, perintah yang sama tersedia melalui `pnpm admin:reset` dan memakai `DATABASE_URL` dari `.env`.
+
 ## Script
 
 | Perintah               | Fungsi                                                                           |
@@ -158,6 +166,7 @@ Pada Coolify, cukup buka **Terminal** aplikasi dan jalankan `node /app/scripts/b
 | `pnpm test:backend`    | Build produksi dan integrasi pada database uji terisolasi.                       |
 | `pnpm test:docker`     | Memeriksa startup, migrasi, dan bootstrap pada image Docker uji.                 |
 | `pnpm admin:bootstrap` | Membuat admin pertama melalui terminal internal.                                 |
+| `pnpm admin:reset`     | Mereset password admin aktif dan mengakhiri seluruh sesinya.                     |
 | `pnpm db:generate`     | Menghasilkan migrasi SQL dari perubahan skema.                                   |
 | `pnpm db:migrate`      | Menerapkan migrasi SQL yang belum dijalankan.                                    |
 | `pnpm db:push`         | Menyinkronkan skema langsung untuk eksperimen lokal.                             |
@@ -171,7 +180,7 @@ docker build --build-arg NEXT_PUBLIC_APP_URL=http://localhost:3005 -t qurban:sta
 pnpm test:docker
 ```
 
-Pengujian memakai port lokal 3005, PostgreSQL dan network Docker sementara, serta data sintetis. Pengujian mencakup migrasi database kosong, bootstrap interaktif, login admin, restart tanpa mengubah riwayat/data, migrasi bersamaan, dan kegagalan SQL yang membatalkan perubahan serta menghentikan startup. Container, network, dan fixture pengujian dibersihkan setelah selesai; database dan container yang sudah berjalan tidak digunakan.
+Pengujian memakai port lokal 3005, PostgreSQL dan network Docker sementara, serta data sintetis. Pengujian mencakup migrasi database kosong, bootstrap interaktif, login admin, reset password dan pencabutan sesi, restart tanpa mengubah riwayat/data, migrasi bersamaan, dan kegagalan SQL yang membatalkan perubahan serta menghentikan startup. Container, network, dan fixture pengujian dibersihkan setelah selesai; database dan container yang sudah berjalan tidak digunakan.
 
 ## Struktur
 

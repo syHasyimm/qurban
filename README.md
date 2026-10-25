@@ -100,6 +100,37 @@ Foto sapi: [Daniel Gheorghe / Unsplash](https://unsplash.com/photos/brown-cow-on
 
 Gunakan origin yang sama pada browser dan kedua variabel URL. Jika mengganti port/domain, ubah keduanya dan restart aplikasi. Variabel `NEXT_PUBLIC_*` dimasukkan ke bundle browser saat build; secret hanya berada pada environment server. `.env*` diabaikan Git dengan pengecualian `.env.example`.
 
+## Menjalankan aplikasi dengan Docker
+
+Rencana produksi dengan VPS, Coolify, PostgreSQL internal, migrasi, dan backup tersedia di [DEPLOY_COOLIFY.md](DEPLOY_COOLIFY.md).
+
+`Dockerfile` memakai Node.js 24.19.0, pnpm 11.20.0, dan build beberapa tahap. Image akhir hanya memuat output Next.js `standalone` beserta aset, dan berjalan sebagai user `node`. `.dockerignore` mengecualikan `.env*`, dependency lokal, dan hasil build/pengujian.
+
+Build image dengan origin publik yang akan dipakai browser:
+
+```sh
+docker build --build-arg NEXT_PUBLIC_APP_URL=http://localhost:3000 -t qurban:latest .
+```
+
+Untuk domain produksi, ganti nilai build argument tersebut, lalu gunakan origin yang sama pada `BETTER_AUTH_URL` dan `NEXT_PUBLIC_APP_URL` saat runtime. Build tidak memerlukan database aktif atau secret produksi; validasi modul server memakai nilai sementara khusus build. Build membutuhkan akses internet untuk dependency dan font Google yang digunakan aplikasi.
+
+Siapkan environment container dari `.env` lokal yang sudah valid:
+
+```powershell
+Copy-Item .env .env.docker
+```
+
+Di macOS/Linux: `cp .env .env.docker`. Jika memakai PostgreSQL dari `docker-compose.yml` proyek ini, ubah **hostname** pada `DATABASE_URL` di `.env.docker` dari `localhost` menjadi `postgres`; pertahankan user, password, port 5432, dan nama database yang sesuai. `localhost` di dalam container mengarah ke container aplikasi itu sendiri.
+
+Jalankan database, lalu jalankan aplikasi pada jaringan Compose yang sama:
+
+```sh
+docker compose up -d --wait postgres
+docker run --rm --name qurban-app --network qurban_default --env-file .env.docker -p 3000:3000 qurban:latest
+```
+
+Buka `http://localhost:3000`. Untuk database baru, jalankan `pnpm db:migrate` dan `pnpm admin:bootstrap` dari host mengikuti langkah Setup sebelum memakai aplikasi. Perintah host tetap memakai `.env` dengan hostname `localhost`. Image runtime menjalankan `node server.js`; migrasi dan bootstrap dilakukan terpisah dari startup aplikasi.
+
 ## Script
 
 | Perintah               | Fungsi                                                                           |

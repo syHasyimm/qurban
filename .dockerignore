@@ -1,0 +1,23 @@
+.git
+.next
+node_modules
+.pnpm-store
+
+# Provide environment variables when running the container.
+.env
+.env.*
+*.pem
+
+coverage
+playwright-report
+test-results
+artifacts
+logs
+out
+build
+*.log
+*.tsbuildinfo
+
+.DS_Store
+.vscode
+.idea
